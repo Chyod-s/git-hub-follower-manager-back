@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc --build --clean && tsc",
+    "build": "rimraf dist && tsc",
     "start": "node dist/index.js",
     "heroku-postbuild": "npm run build",
     "dev": "nodemon --watch src --exec ts-node ./index.ts",
@@ -23,11 +23,16 @@
     "express": "^4.21.2",
     "node-fetch": "^3.3.2",
     "nodemon": "^3.1.0",
-    "puppeteer": "^22.7.1"
+    "puppeteer": "^22.7.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/node": "^22.13.5",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
+    "rimraf": "^5.0.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3"
   }
