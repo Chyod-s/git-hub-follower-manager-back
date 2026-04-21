@@ -4,6 +4,7 @@ import { FollowUsersFollowers } from '../../services/useCases/followUsersFollowe
 import { newFollower } from '../../requests/FollowRequest';
 import { checkUnfollowAndFollow } from '../../services/useCases/checkUnfollowAndFollow/checkUnfollowAndFollowUseCase';
 import { unfollowUsers } from '../../services/useCases/unfollowUsers/UnfollowUsersUseCase';
+import { filterOrganicFollowers } from '../../services/useCases/filterOrganicFollowers/FilterOrganicFollowersUseCase';
 
 const routers = Router();
 
@@ -371,6 +372,66 @@ routers.delete('/unfollow-users', async (req: Request, res: Response) => {
         res.json(result);
     } catch (error) {
         res.status(500).json({ error: "Erro ao processar unfollow em lote." });
+    }
+});
+
+/**
+ * @swagger
+ * /filter-organic:
+ *   post:
+ *     summary: Filtra uma lista de usuários separando orgânicos de suspeitos (bots/follow-for-follow)
+ *     tags:
+ *       - Seguidores
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               usernames:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["usuario1", "giewan", "benalbano"]
+ *     responses:
+ *       200:
+ *         description: Resultado da filtragem
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 organic:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                 suspicious:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                 reasons:
+ *                   type: object
+ *       400:
+ *         description: Lista não informada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+routers.post('/filter-organic', async (req: Request, res: Response) => {
+    const { usernames } = req.body;
+
+    if (!Array.isArray(usernames) || usernames.length === 0) {
+        res.status(400).json({ error: "Informe uma lista de usuários em 'usernames'." });
+        return;
+    }
+
+    try {
+        const result = await filterOrganicFollowers(usernames);
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: "Erro ao filtrar usuários." });
     }
 });
 
