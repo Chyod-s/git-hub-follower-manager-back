@@ -6,18 +6,22 @@ import { filterOrganicFollowers } from "../filterOrganicFollowers/FilterOrganicF
 
 const PER_PAGE = 100;
 const BATCH_SIZE = 20;
+const DAILY_LIMIT = 100;
 
-export async function FollowUsersFollowers(targetUser: string, myUser: string): Promise<{ followed: number; skipped: number; filtered: number } | null> {
+export async function FollowUsersFollowers(targetUser: string, myUser: string): Promise<{ followed: number; skipped: number; filtered: number; remaining: number } | null> {
 
     const toFollow = await getFollowersIDoNotFollow(targetUser, myUser);
     if (!toFollow) return null;
 
     const { organic, suspicious } = await filterOrganicFollowers([...toFollow]);
 
+    const limited = organic.slice(0, DAILY_LIMIT);
+    const remaining = organic.length - limited.length;
+
     let followed = 0;
     let skipped = 0;
 
-    const batches = chunkArray(organic, BATCH_SIZE);
+    const batches = chunkArray(limited, BATCH_SIZE);
 
     for (const batch of batches) {
         const results = await Promise.allSettled(
@@ -38,7 +42,7 @@ export async function FollowUsersFollowers(targetUser: string, myUser: string): 
         }
     }
 
-    return { followed, skipped, filtered: suspicious.length };
+    return { followed, skipped, filtered: suspicious.length, remaining };
 }
 
 async function getFollowersIDoNotFollow(targetUser: string, myUser: string): Promise<Set<string> | null> {
