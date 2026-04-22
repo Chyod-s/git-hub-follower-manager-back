@@ -9,12 +9,6 @@ const options: swaggerJsdoc.Options = {
       description:
         'API para gerenciamento de seguidores do GitHub. Permite verificar seguidores, seguir usuários automaticamente e monitorar alterações na lista de seguidores.',
     },
-    servers: [
-      {
-        url: 'https://git-hub-follower-manager-23a9d5630eaf.herokuapp.com',
-        description: 'Produção (Heroku)',
-      },
-    ],
   },
   apis: ['./src/controllers/routes/*.ts'],
 };
