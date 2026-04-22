@@ -1,64 +1,163 @@
 # GitHub Follower Manager
 
-Este script em TypeScript verifica se seus seguidores no GitHub estão seguindo você de volta. Ele utiliza a API do GitHub para obter a lista de seguidores e seguidos de um determinado usuário, identificando seguidores mútuos e aqueles que não seguem de volta.
+O **GitHub Follower Manager** é uma API REST para automação de gerenciamento de seguidores no GitHub. Permite verificar reciprocidade de follows, seguir e deixar de seguir usuários em lote, clonar seguidores de perfis referência e filtrar bots automaticamente.
 
-Na atualização mais recente, foi adicionada uma funcionalidade que permite clonar os seguidores de outros perfis, além de possibilitar deixar de seguir usuários que não retribuem o follow.
+---
 
-## Como Usar
-1. Clone este repositório.
-2. Instale o Node.js, se ainda não o fez.
-    ```bash
-    https://nodejs.org/en
+## Tecnologias Utilizadas
 
-3. em seguida instale as dependecias
-   ```bash
-    npm install
-4. execute
-    ```bash
-        > crie e altere ./src/config/.env
-        > USER = 'login git';
-        > PASSWORD = 'senha git';
-5. execute
-    ```bash
-    node ./src/services/webScraping/webScrapingData.js
-        > em seu celular 
-        > Digite o número: ...
+- **Node.js + TypeScript** – ambiente robusto e tipado
+- **Express** – framework HTTP
+- **Axios** – requisições à API do GitHub
+- **Puppeteer** – automação e web scraping
+- **Cheerio** – parsing de HTML
+- **Swagger UI** – documentação interativa dos endpoints
+- **Dotenv** – gerenciamento de variáveis de ambiente
+- **ts-node / nodemon** – execução e hot reload em desenvolvimento
 
-6. Execute a api em seu terminal:
+---
 
-    ```bash
-    node index.ts
+## Estrutura do Projeto
 
-    {
-        "message": "Bem-vindo à API de Gerenciamento de Seguidores!",
+```bash
+github-follower-manager/
+├── index.ts                        # Entry point da aplicação
+├── src/
+│   ├── config/
+│   │   ├── .env                    # Variáveis de ambiente (não versionar)
+│   │   ├── .env-example.txt        # Exemplo de configuração
+│   │   └── swagger.ts              # Configuração do Swagger
+│   ├── controllers/
+│   │   ├── RegisterRoutes.ts       # Registro central de rotas
+│   │   └── routes/
+│   │       └── apiRoutes.ts        # Definição de todos os endpoints
+│   ├── models/
+│   │   └── request/                # Interfaces TypeScript dos requests
+│   ├── requests/                   # Funções de requisição à API do GitHub
+│   └── services/
+│       ├── webScraping/            # Scraping com Puppeteer
+│       └── useCases/               # Lógica de negócio por caso de uso
+│           ├── checkFollowerAndFollowing/
+│           ├── checkUnfollowAndFollow/
+│           ├── fetchUserFollowData/
+│           ├── filterOrganicFollowers/
+│           ├── followUsersFollowers/
+│           ├── logChangeCount/
+│           └── unfollowUsers/
+```
 
-        "description": "Esta API permite verificar seguidores, seguir usuários automaticamente e monitorar alterações na lista de seguidores.",
+---
 
-        "endpoints": {
-            "/check-follower": "Verifica se um usuário segue outro usuário.",
-            "/follow-users": "Segue automaticamente os seguidores de um usuário.",
-            "/check-unfollower": "Verifica se um usuário deixou de seguir outro.",
-            "/new-follower/:name": "Segue um novo usuário específico."
-        },
+## Instalação Local
 
-        "note": "Para utilizar os endpoints que exigem um nome de usuário, passe o parâmetro 'name' na query string ou na URL.",
-        
-        "example": "/check-follower?name=usuario"
-    }
+### Requisitos
 
+- [Node.js](https://nodejs.org/) v18 ou superior
+- Conta no GitHub com **token de acesso pessoal (PAT)**
+
+> Gere seu token em: **GitHub > Settings > Developer settings > Personal access tokens**. Permissão necessária: escopo `user` (follow/unfollow).
+
+### 1. Clonar o repositório
+
+```bash
+git clone https://github.com/Ton-Chyod-s/fallowbackgit.git
+cd fallowbackgit
+```
+
+### 2. Instalar dependências
+
+```bash
+npm install
+```
+
+### 3. Configurar variáveis de ambiente
+
+```bash
+cp src/config/.env-example.txt src/config/.env
+```
+
+Edite `src/config/.env`:
+
+```env
+USER=seu_login_github
+KEY=ghp_xxxxxxxxxxxxxxxxxxxx
+```
+
+| Variável | Descrição                         |
+|----------|-----------------------------------|
+| `USER`   | Login do usuário GitHub           |
+| `KEY`    | Token de acesso pessoal do GitHub |
+
+### 4. Rodar a aplicação
+
+```bash
+# Desenvolvimento (hot reload)
+npm run dev
+
+# Produção
+npm run build
+npm start
+```
+
+| Serviço        | URL                              |
+|----------------|----------------------------------|
+| API            | http://localhost:3000            |
+| Swagger (docs) | http://localhost:3000/api-docs   |
+
+### Web Scraping (opcional)
+
+Para funcionalidades que utilizam automação via Puppeteer:
+
+```bash
+node ./src/services/webScraping/webScrapingData.js
+```
+
+Siga as instruções exibidas no terminal.
+
+---
+
+## Endpoints
+
+| Método     | Rota                | Descrição                                                     |
+|------------|---------------------|---------------------------------------------------------------|
+| `GET`      | `/`                 | Boas-vindas e listagem dos endpoints disponíveis              |
+| `GET`      | `/check-follower`   | Lista quem você segue mas não te segue de volta               |
+| `GET`      | `/check-unfollower` | Lista quem te segue mas você ainda não segue de volta         |
+| `POST`     | `/follow-users`     | Copia e segue os seguidores orgânicos de uma conta referência |
+| `POST`     | `/new-follower`     | Segue um ou mais usuários específicos                         |
+| `DELETE`   | `/unfollow-users`   | Para de seguir uma lista de usuários em lote                  |
+| `POST`     | `/filter-organic`   | Separa usuários orgânicos de suspeitos (bots)                 |
+
+> A autenticação é feita via variáveis de ambiente. Não há token por requisição.
+
+### Exemplos de body
+
+**POST `/follow-users`**
+```json
+{ "targetUser": "conta_referencia" }
+```
+
+**POST `/new-follower`**
+```json
+{ "usernames": ["usuario1", "usuario2"] }
+```
+
+**DELETE `/unfollow-users`**
+```json
+{ "usernames": ["usuario1", "usuario2"] }
+```
+
+**POST `/filter-organic`**
+```json
+{ "usernames": ["usuario1", "usuario2", "usuario3"] }
+```
+
+---
 
 ## Contribuição
 
-Sinta-se à vontade para contribuir abrindo issues ou pull requests.
-
-## Video
-### GitHub Follower Manager
-<br>
-<div style="display: inline_block">
-<a href="https://www.youtube.com/watch?v=Cam6XuduU5Y&t=2s">
-<img height=110 src="https://images.tcdn.com.br/img/img_prod/1076751/teste_2_591_1_db9b616c9397e918b1d43802d3dea23b.jpg"/>
-</a>
-</div>
+Contribuições são bem-vindas. Abra uma issue ou pull request.
 
 ## Licença
-Este projeto está licenciado sob a Licença MIT - consulte o arquivo LICENSE para obter mais detalhes.
+
+Este projeto está licenciado sob a [MIT License](./LICENSE).
