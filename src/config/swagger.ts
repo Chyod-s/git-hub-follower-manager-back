@@ -14,10 +14,6 @@ const options: swaggerJsdoc.Options = {
         url: 'https://git-hub-follower-manager-23a9d5630eaf.herokuapp.com',
         description: 'Produção (Heroku)',
       },
-      {
-        url: 'http://localhost:3000',
-        description: 'Desenvolvimento',
-      },
     ],
   },
   apis: ['./src/controllers/routes/*.ts'],
