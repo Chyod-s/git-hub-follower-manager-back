@@ -11,7 +11,7 @@ export async function checkUnfollowAndFollow(userName: string): Promise<string[]
     const followers = userFollowData.followers;
 
     followers.forEach(user => {
-        if (!following.has(user))  // ← .has() para Set
+        if (!following.has(user))
             userToFollow.push(user);
     });
     
