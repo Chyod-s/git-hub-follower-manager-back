@@ -1,0 +1,22 @@
+enum UserRole {
+  USER
+  ADMIN
+
+  @@map("user_role")
+}
+
+model User {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String   @db.VarChar(100)
+  email         String   @unique @db.Citext
+  password_hash String?
+  github_id     String?  @unique
+  role          UserRole @default(USER)
+  token_version Int      @default(0)
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  refresh_tokens RefreshToken[]
+
+  @@map("users")
+}

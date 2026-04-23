@@ -20,6 +20,9 @@
   },
   "author": "DevTonChyod-s",
   "license": "ISC",
+  "prisma": {
+    "schema": "prisma/schema"
+  },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
     "@prisma/adapter-neon": "^7.8.0",
