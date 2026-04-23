@@ -7,6 +7,12 @@ export type CreateRefreshTokenInput = {
   userId: string;
   tokenHash: string;
   expiresAt: Date;
+  encryptedGithubToken?: string;
+};
+
+export type ConsumedRefreshToken = {
+  userId: string;
+  encryptedGithubToken: string | null;
 };
 
 export class RefreshTokenRepository {
@@ -18,11 +24,12 @@ export class RefreshTokenRepository {
         user_id: input.userId,
         token_hash: input.tokenHash,
         expires_at: input.expiresAt,
+        github_access_token: input.encryptedGithubToken ?? null,
       },
     });
   }
 
-  async consumeByTokenHash(tokenHash: string): Promise<string | null> {
+  async consumeByTokenHash(tokenHash: string): Promise<ConsumedRefreshToken | null> {
     const now = new Date();
 
     const token = await prisma.refreshToken.findFirst({
@@ -31,7 +38,7 @@ export class RefreshTokenRepository {
         used_at: null,
         expires_at: { gt: now },
       },
-      select: { id: true, user_id: true },
+      select: { id: true, user_id: true, github_access_token: true },
     });
 
     if (!token) return null;
@@ -47,7 +54,10 @@ export class RefreshTokenRepository {
 
     if (updated.count !== 1) return null;
 
-    return token.user_id;
+    return {
+      userId: token.user_id,
+      encryptedGithubToken: token.github_access_token,
+    };
   }
 
   async deleteByUserId(userId: string): Promise<void> {

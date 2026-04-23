@@ -3,6 +3,7 @@ import { UserRepository } from '../repositories/user-repository';
 import { RefreshTokenRepository } from '../repositories/refresh-token-repository';
 import { signToken } from '../../utils/jwt';
 import { sha256Hex } from '../../utils/hash';
+import { encryptToken } from '../../utils/crypto';
 import { AppError } from '../../utils/app-error';
 
 const REFRESH_TOKEN_TTL_MS = parseInt(process.env.REFRESH_TOKEN_TTL_MS ?? '604800000', 10);
@@ -146,6 +147,7 @@ export class GitHubLoginUseCase {
       sub: user.id,
       role: user.role,
       tokenVersion: user.token_version,
+      githubToken: githubAccessToken,
     });
 
     const rawRefreshToken = crypto.randomBytes(64).toString('hex');
@@ -156,6 +158,7 @@ export class GitHubLoginUseCase {
       userId: user.id,
       tokenHash,
       expiresAt,
+      encryptedGithubToken: encryptToken(githubAccessToken),
     });
 
     return {

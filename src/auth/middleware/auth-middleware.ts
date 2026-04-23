@@ -12,6 +12,7 @@ declare global {
         id: string;
         role: 'USER' | 'ADMIN';
         tokenVersion: number;
+        githubToken?: string;
       };
     }
   }
@@ -48,7 +49,7 @@ export const authMiddleware: RequestHandler = async (req, res, next) => {
       sendUnauthorized(res); return;
     }
 
-    req.user = { id: user.id, role: user.role, tokenVersion: user.token_version };
+    req.user = { id: user.id, role: user.role, tokenVersion: user.token_version, githubToken: payload.githubToken };
     next();
   } catch {
     sendUnauthorized(res);

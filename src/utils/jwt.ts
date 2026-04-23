@@ -4,6 +4,7 @@ export type TokenPayload = {
   sub: string;
   role: 'USER' | 'ADMIN';
   tokenVersion: number;
+  githubToken?: string;
 };
 
 const ALLOWED_ROLES = new Set(['USER', 'ADMIN']);
@@ -23,7 +24,7 @@ function getJwtConfig() {
 export function signToken(payload: TokenPayload): string {
   const config = getJwtConfig();
   return jwt.sign(
-    { role: payload.role, tokenVersion: payload.tokenVersion },
+    { role: payload.role, tokenVersion: payload.tokenVersion, ...(payload.githubToken && { githubToken: payload.githubToken }) },
     config.secret,
     {
       subject: payload.sub,
@@ -62,5 +63,12 @@ export function verifyToken(token: string): TokenPayload {
     throw new jwt.JsonWebTokenError('Token has invalid tokenVersion');
   }
 
-  return { sub, role: roleRaw as TokenPayload['role'], tokenVersion: tokenVersionRaw };
+  const githubToken = (payload as Record<string, unknown>).githubToken;
+
+  return {
+    sub,
+    role: roleRaw as TokenPayload['role'],
+    tokenVersion: tokenVersionRaw,
+    ...(typeof githubToken === 'string' && { githubToken }),
+  };
 }
