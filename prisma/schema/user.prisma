@@ -8,7 +8,7 @@ enum UserRole {
 model User {
   id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name          String   @db.VarChar(100)
-  email         String   @unique @db.Citext
+  email         String   @unique
   password_hash String?
   github_id     String?  @unique
   role          UserRole @default(USER)

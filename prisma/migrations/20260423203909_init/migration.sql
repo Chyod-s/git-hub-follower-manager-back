@@ -17,7 +17,7 @@ CREATE TABLE "refresh_tokens" (
 CREATE TABLE "users" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" VARCHAR(100) NOT NULL,
-    "email" CITEXT NOT NULL,
+    "email" TEXT NOT NULL,
     "password_hash" TEXT,
     "github_id" TEXT,
     "role" "user_role" NOT NULL DEFAULT 'USER',
