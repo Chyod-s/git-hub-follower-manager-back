@@ -136,7 +136,7 @@ router.post(
  *         description: Unauthorized
  */
 router.get('/auth/me', authMiddleware, asyncRoute(me));
-router.patch('/auth/me', authMiddleware, asyncRoute(updateMe));
+router.patch('/auth/me', authLimiter, authMiddleware, asyncRoute(updateMe));
 
 /**
  * @swagger
