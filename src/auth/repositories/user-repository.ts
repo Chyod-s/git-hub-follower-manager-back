@@ -60,10 +60,15 @@ export class UserRepository {
 
     const existingByEmail = await this.findByEmail(normalizedEmail);
     if (existingByEmail) {
-      throw AppError.conflict(
-        'An account with this email already exists. Please log in with your original method.',
-        'AUTH_EMAIL_ALREADY_REGISTERED',
-      );
+      const updated = await prisma.user.update({
+        where: { id: existingByEmail.id },
+        data: {
+          github_id: data.githubId,
+          github_login: data.githubLogin,
+          updated_at: new Date(),
+        },
+      });
+      return { user: updated, created: false };
     }
 
     const user = await prisma.user.create({
