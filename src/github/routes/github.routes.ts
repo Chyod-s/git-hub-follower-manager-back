@@ -6,22 +6,40 @@ import { checkUnfollowAndFollow } from '../usecases/check-unfollow-and-follow-us
 import { unfollowUsers } from '../usecases/unfollow-users-usecase';
 import { filterOrganicFollowers } from '../usecases/filter-organic-followers-usecase';
 import { authMiddleware } from '../../auth/middleware/auth-middleware';
+import { UserRepository } from '../../auth/repositories/user-repository';
 import { AppError } from '../../utils/app-error';
 import { createResponse } from '../../utils/create-response';
 import { httpStatusCodes } from '../../utils/http-constants';
 
 const routers = Router();
+const userRepository = new UserRepository();
 
-function getAuthenticatedUser(res: Response): string | null {
-  const user = process.env.USER;
-  if (!user) {
-    const status = httpStatusCodes.INTERNAL_SERVER_ERROR;
-    res
-      .status(status)
-      .json(createResponse(status, 'GitHub user not configured', undefined, 'USER_NOT_SET'));
+async function getAuthenticatedGithubLogin(
+  req: Request,
+  res: Response,
+): Promise<string | null> {
+  if (!req.user?.id) {
+    const status = httpStatusCodes.UNAUTHORIZED;
+    res.status(status).json(createResponse(status, 'Unauthorized', undefined, 'UNAUTHORIZED'));
     return null;
   }
-  return user;
+
+  const user = await userRepository.findById(req.user.id);
+  if (!user?.github_login) {
+    const status = httpStatusCodes.BAD_REQUEST;
+    res
+      .status(status)
+      .json(
+        createResponse(
+          status,
+          'No GitHub account linked. Sign in with GitHub first.',
+          undefined,
+          'GITHUB_ACCOUNT_NOT_LINKED',
+        ),
+      );
+    return null;
+  }
+  return user.github_login;
 }
 
 function isValidUsername(username: string): boolean {
@@ -57,8 +75,8 @@ routers.get('/', (_req: Request, res: Response) => {
  *       500:
  *         description: Erro interno
  */
-routers.get('/check-follower', authMiddleware, async (_req: Request, res: Response, next: NextFunction) => {
-  const name = getAuthenticatedUser(res);
+routers.get('/check-follower', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  const name = await getAuthenticatedGithubLogin(req, res);
   if (!name) return;
 
   try {
@@ -107,7 +125,7 @@ routers.post('/follow-users', authMiddleware, async (req: Request, res: Response
     );
   }
 
-  const myUser = getAuthenticatedUser(res);
+  const myUser = await getAuthenticatedGithubLogin(req, res);
   if (!myUser) return;
 
   const status = httpStatusCodes.OK;
@@ -138,8 +156,8 @@ routers.post('/follow-users', authMiddleware, async (req: Request, res: Response
  *       500:
  *         description: Erro interno
  */
-routers.get('/check-unfollower', authMiddleware, async (_req: Request, res: Response, next: NextFunction) => {
-  const name = getAuthenticatedUser(res);
+routers.get('/check-unfollower', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  const name = await getAuthenticatedGithubLogin(req, res);
   if (!name) return;
 
   try {

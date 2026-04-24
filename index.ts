@@ -17,6 +17,9 @@ const server: Application = express();
 const port = process.env.PORT || 3000;
 const env = process.env.NODE_ENV || 'production';
 
+const trustProxy = process.env.TRUST_PROXY ?? '1';
+server.set('trust proxy', /^\d+$/.test(trustProxy) ? Number(trustProxy) : trustProxy);
+
 server.disable('x-powered-by');
 
 server.use(helmet());

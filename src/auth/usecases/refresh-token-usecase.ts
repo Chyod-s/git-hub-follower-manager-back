@@ -4,7 +4,6 @@ import { RefreshTokenRepository } from '../repositories/refresh-token-repository
 import { signToken } from '../../utils/jwt';
 import { sha256Hex } from '../../utils/hash';
 import { AppError } from '../../utils/app-error';
-import { decryptToken } from '../../utils/crypto';
 
 const REFRESH_TOKEN_TTL_MS = parseInt(process.env.REFRESH_TOKEN_TTL_MS ?? '604800000', 10);
 
@@ -27,15 +26,10 @@ export class RefreshTokenUseCase {
       throw AppError.unauthorized('User not found', 'REFRESH_TOKEN_INVALID');
     }
 
-    const githubToken = consumed.encryptedGithubToken
-      ? decryptToken(consumed.encryptedGithubToken)
-      : undefined;
-
     const accessToken = signToken({
       sub: user.id,
       role: user.role,
       tokenVersion: user.token_version,
-      githubToken,
     });
 
     const newRawToken = crypto.randomBytes(64).toString('hex');

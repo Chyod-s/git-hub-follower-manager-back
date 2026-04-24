@@ -12,6 +12,7 @@ export type CreateUserData = {
 
 export type UpsertGithubUserData = {
   githubId: string;
+  githubLogin: string;
   email: string;
   name: string;
 };
@@ -47,6 +48,13 @@ export class UserRepository {
 
     const existingByGithub = await this.findByGithubId(data.githubId);
     if (existingByGithub) {
+      if (existingByGithub.github_login !== data.githubLogin) {
+        const updated = await prisma.user.update({
+          where: { id: existingByGithub.id },
+          data: { github_login: data.githubLogin, updated_at: new Date() },
+        });
+        return { user: updated, created: false };
+      }
       return { user: existingByGithub, created: false };
     }
 
@@ -63,6 +71,7 @@ export class UserRepository {
         name: data.name.trim(),
         email: normalizedEmail,
         github_id: data.githubId,
+        github_login: data.githubLogin,
         role: 'USER',
       },
     });

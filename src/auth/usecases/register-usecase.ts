@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { UserRepository } from '../repositories/user-repository';
 import { hashPassword } from '../../utils/password';
-import { AppError } from '../../utils/app-error';
 
 export const registerSchema = z.object({
   name: z
@@ -25,25 +24,26 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 export class RegisterUseCase {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async execute(input: RegisterInput) {
+  async execute(input: RegisterInput): Promise<{ created: boolean }> {
     const existing = await this.userRepository.findByEmail(input.email);
     if (existing) {
-      throw AppError.conflict('User already exists', 'USER_ALREADY_EXISTS');
+      await hashPassword(input.password);
+      return { created: false };
     }
 
     const passwordHash = await hashPassword(input.password);
 
-    const user = await this.userRepository.create({
-      name: input.name,
-      email: input.email,
-      passwordHash,
-    });
+    try {
+      await this.userRepository.create({
+        name: input.name,
+        email: input.email,
+        passwordHash,
+      });
+    } catch (err) {
+      const code = (err as { code?: string })?.code;
+      if (code !== 'P2002') throw err;
+    }
 
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    };
+    return { created: true };
   }
 }

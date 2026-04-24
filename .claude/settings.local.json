@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/)",
+      "Bash(node security-tests/pentest.mjs http://localhost:3000)",
+      "Bash(node security-tests/stress-test.mjs http://localhost:3000)",
+      "Bash(xargs -I {} basename {})",
+      "Bash(node -e \":*)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npx tsc)",
+      "Bash(npx prisma generate)"
+    ]
+  }
+}

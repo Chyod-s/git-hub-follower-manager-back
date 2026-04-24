@@ -64,11 +64,11 @@ export async function register(req: Request, res: Response, next: NextFunction):
     const parsed = registerSchema.safeParse(req.body);
     if (!parsed.success) { sendValidationError(res, parsed.error.issues); return; }
 
-    const user = await registerUseCase.execute(parsed.data);
+    await registerUseCase.execute(parsed.data);
 
-    res.status(httpStatusCodes.CREATED).json(
-      createResponse(httpStatusCodes.CREATED, 'User created successfully', user),
-    );
+    res
+      .status(httpStatusCodes.CREATED)
+      .json(createResponse(httpStatusCodes.CREATED, 'Registration request received'));
   } catch (err) {
     next(err);
   }

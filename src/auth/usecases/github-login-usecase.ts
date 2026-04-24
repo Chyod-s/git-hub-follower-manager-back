@@ -139,6 +139,7 @@ export class GitHubLoginUseCase {
 
     const { user } = await this.userRepository.upsertByGithubId({
       githubId: String(githubUser.id),
+      githubLogin: githubUser.login,
       email,
       name,
     });
@@ -147,7 +148,6 @@ export class GitHubLoginUseCase {
       sub: user.id,
       role: user.role,
       tokenVersion: user.token_version,
-      githubToken: githubAccessToken,
     });
 
     const rawRefreshToken = crypto.randomBytes(64).toString('hex');
