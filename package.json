@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "rimraf dist && tsc",
+    "build": "prisma generate && rimraf dist && tsc",
     "start": "node dist/index.js",
     "heroku-postbuild": "prisma generate && npm run build",
     "dev": "nodemon --watch src --exec ts-node ./index.ts",
